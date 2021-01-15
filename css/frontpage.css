@@ -111,6 +111,11 @@ section p ~ pre {
   color: #da4323;
 }
 
+aside {
+  margin: 0;
+  padding: 0;
+}
+
 /* logo animation */
 @keyframes fadeInLogo {
   from {
