@@ -3,77 +3,59 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Nicolas Winsten</title>
-    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
-    <link rel="stylesheet" href="css/bootstrap.min.css"/>
-    <!-- <link rel="stylesheet" href="css/dottydoc.css"/> -->
-    <link rel="stylesheet" href="css/color-brewer.css"/>
-    <script type="text/javascript" src="js/jquery.min.js" defer="true"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js" defer="true"></script>
-    <link rel="stylesheet" href="css/frontpage.css"/>
+    <style>
+        body {
+            background: url(images/clouds.png) repeat 0 0;
+            font-family: "Comic Sans MS", "Comic Sans", cursive;
+            text-align: center;
+        }
 
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css">
-    <script>
-            var pathToRoot = "";
-        </script>
+        img {
+            display: inline-block;
+        }
+
+        #header {
+            font-size: xx-large;
+        }
+        .center {
+          margin: auto;
+          width: 50%;
+        }
+        .center-right {
+          margin: auto;
+          margin-left: 30%;
+          width: 40%;
+        }
+    </style>
 </head>
 <body>
-<div id="content">
-
-    <div id="content-wrapper">
-        <section class="page bg-red bg-dark">
-            <header>
-                <nav class="navbar navbar-expand-md navbar-dark">
-                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarContent">
-                        <ul class="navbar-nav ml-auto mr-0">
-                            <!-- ADD TOP NAVBAR ITEMS HERE -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="wiki-brain" target="_blank">WikiBrain</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="NicolasWinstenResume.pdf" target="_blank">Resume</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="https://github.com/NicolasWinsten" target="_blank">
-                                    <i class="fab fa-github"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </nav>
-            </header>
-            <div class="container">
-                <div class="logo-container">
-                    <img src="images/nick-profile.png" alt="logo">
-                    <div class="subtitle text-center">
-                        <h1 class="above-byline">Nicolas Winsten</h1>
-                        <p>&#8595;</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-        <section class="page bg-blue bg-dark">
-            <div class="container">
-                <br>
-                <p>
-                    I'm an undergraduate studying Computer Science at the University of Arizona.
-                    <hr>
-                    You can look at my resume <a href="public-resume.pdf">here</a>.
-                    <hr>
-                    You can look at my github <a href="https://github.com/NicolasWinsten">here</a>.
-                    <hr>
-                    Contact me at <a href="mailto:nicolaswinsten@email.arizona.edu">nicolaswinsten@email.arizona.edu</a>
-            </div>
-        </section>
+<div>
+    <table class="center">
+        <tr>
+            <td><img src="images/ghost.gif"></td>
+            <td class="center"><span id="header">Nicolas Winsten</span></td>
+            <td><img src="images/ghost.gif"></td>
+        </tr>
+    </table>
+    <p>I'm a computer science student at the University of Arizona.</p>
+    <p>My main interests are programming languages and language processors.</p>
+    <div class="center-right">
+        <table>
+            <tr>
+                <td><span>email me at nicolasd DOT winsten AT gmail DOT com</span></td>
+                <td><img src="images/anim_mail.gif"></td>
+            </tr>
+        </table>
     </div>
-
-
+    <div class="center-right">
+        <table>
+            <tr>
+                <td><span>look at my <a href="https://github.com/NicolasWinsten">github</a></span></td>
+                <td><img src="images/dino.gif"></td>
+                <td><span>read my <a href="NicolasWinstenResume.pdf">resume</a></span></td>
+            </tr>
+        </table>
+    </div>
 </div>
-<!-- <script type="text/javascript" src="scripts/main.js"></script> -->
 </body>
 </html>
