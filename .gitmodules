@@ -1,3 +1,6 @@
 [submodule "wiki-brain"]
 	path = wiki-brain
 	url = https://github.com/NicolasWinsten/wiki-brain
+[submodule "turing"]
+	path = turing
+	url = https://github.com/NicolasWinsten/turing
