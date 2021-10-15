@@ -4,28 +4,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Nicolas Winsten</title>
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="css/scrollbar.css">
     <style>
         body {
             background: url(images/clouds.png) repeat 0 0;
             font-family: "Comic Sans MS", "Comic Sans", cursive;
             text-align: center;
         }
+        .center {
+            margin: auto;
+            width: 50%;
+        }
 
         img {
             display: inline-block;
         }
 
+        .detail {
+            display: inline-block;
+            margin: 20px;
+        }
+
         #header {
             font-size: xx-large;
         }
-        .center {
-          margin: auto;
-          width: 50%;
-        }
-        .center-right {
-          margin: auto;
-          margin-left: 30%;
-          width: 40%;
+        .hasborder {
+            border: 1px solid blue;
         }
     </style>
 </head>
@@ -38,14 +42,23 @@
             <td><img src="images/ghost.gif"></td>
         </tr>
     </table>
+
     <p>I'm a computer science student at the University of Arizona.</p>
     <p>My main interests are programming languages and language processors.</p>
-    <p>look at my <a href="https://github.com/NicolasWinsten">github</a></p>
-    <p>read my <a href="NicolasWinstenResume.pdf">resume</a></p>
-
-    <h2>Doodads</h2>
+    <img src="images/genie.gif" style="float:left;margin-left:5%;">
+    <div>
+        <div class="detail">
+            <p>look at my <a href="https://github.com/NicolasWinsten">github</a></p>
+            <p>read my <a href="NicolasWinstenResume.pdf">resume</a></p>
+        </div>
+        <div class="detail">
+            <img src="images/dino.gif">
+        </div>
+    </div>
+    <img src="images/knight.gif" style="float:right;margin-right:10%;">
+    <img src="images/walkingrobot.gif"><h2 class="detail">Doodads</h2>
     <p>a <a href="turing/index.html">turing machine simulator</a> (with REAL <small>exponential time</small> non-determinism!)</p>
-    <p>email me at nicolasd DOT winsten AT gmail DOT com</p>
+    <p>email me at nicolasd DOT winsten AT gmail DOT com<img src="images/anim_mail.gif"></p>
 </div>
 </body>
 </html>
