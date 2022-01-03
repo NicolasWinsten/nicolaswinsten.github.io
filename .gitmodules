@@ -4,3 +4,6 @@
 [submodule "turing"]
 	path = turing
 	url = https://github.com/NicolasWinsten/turing
+[submodule "racer"]
+	path = racer
+	url = https://github.com/NicolasWinsten/racer
