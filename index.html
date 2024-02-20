@@ -14,6 +14,47 @@
 
     <script>
 			app = Elm.Main.init({node : document.getElementById("app")})
+
+			app.ports.log.subscribe(console.log)
+
+			// use this proxy server to get around CORS
+			const proxy = "https://corsproxy.io/?"
+
+			// parse the html at the given url into a Document object
+			async function retrieveDocument(url) {
+				let response = await fetch(url)
+				let text = await response.text()
+				let parser = new DOMParser()
+				return parser.parseFromString(text, "text/html")
+			}
+
+			// goodreads does not have an API... so I just do some nasty client-side webscraping.
+			// this will most likely break either because goodreads HTML structure changes or the
+			// CORS proxy server stops working
+
+			async function retrieveGoodreadsShelf(shelf, numBooks) {
+				let goodreadsUrl = `https://www.goodreads.com/review/list/98059963-nicolas?shelf=${shelf}&per_page=${numBooks}`
+				let doc = await retrieveDocument(proxy + goodreadsUrl)
+				console.log("received", shelf, "shelf")
+				// parse the books from the html table
+				let bookTableRows = Array.from(doc.querySelectorAll("tbody#booksBody > tr"))
+				let books = bookTableRows.map(entry => ({
+					// from each row in the table, retrieve its isbn and rating
+					isbn : entry.querySelector("td.field.isbn13 > .value").textContent.trim(),
+					// get the rating by counting the number of filled stars in the entry
+					rating : Number(entry.querySelectorAll("td.field.rating .staticStar.p10").length)
+				}))
+
+				return books
+			}
+
+			app.ports.fetchGoodReadsShelf.subscribe(({shelf, numBooks}) => {
+				console.log("fetching", shelf, "shelf from goodreads")
+				retrieveGoodreadsShelf(shelf, numBooks)
+					.then(books => app.ports.receiveShelf.send({name : shelf, books : books}))
+			})
+
+
 		</script>
 </body>
 </html>
