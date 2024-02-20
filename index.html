@@ -13,7 +13,10 @@
     <script src="app.js"></script>
 
     <script>
-			app = Elm.Main.init({node : document.getElementById("app")})
+			app = Elm.Main.init({
+					node : document.getElementById("app"),
+					flags : {width : window.innerWidth, height : window.innerHeight}
+				})
 
 			app.ports.log.subscribe(console.log)
 

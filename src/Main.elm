@@ -30,14 +30,14 @@ type Shelf = Shelf String (List Book)
 type alias Model =
   { currentReads : Loadable Shelf
   , recentlyRead : Loadable Shelf
-  , now : Time.Posix
+  , device : Device
   }
 
-initialModel = { currentReads=Loading, recentlyRead=Loading, now=Time.millisToPosix 0 }
+initialModel = { currentReads=Loading, recentlyRead=Loading, device={class=Desktop, orientation=Landscape} }
 
 type Msg
   = ReceivedShelf (Result Decode.Error Shelf)
-  | Tick Time.Posix
+  | WindowResize {width : Int, height : Int}
   | Oops String
 
 {- goodreads withdrew API support...
@@ -64,6 +64,10 @@ takeBestReads (Shelf name books) =
         |> List.take 5
   in Shelf name bestReads
 
+
+setDevice : {width : Int, height : Int} -> Model -> Model
+setDevice window model = {model | device=classifyDevice window}
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
     Oops err -> (model, log err)
@@ -78,7 +82,7 @@ update msg model = case msg of
 
     ReceivedShelf (Err err) -> (model, log (Decode.errorToString err))
 
-    Tick time -> ({model | now=time}, Cmd.none)
+    WindowResize window -> (setDevice window model, Cmd.none)
 
 
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
@@ -213,8 +217,8 @@ decodeShelf = Decode.map2 Shelf
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   let gotShelf = Sub.map ReceivedShelf (receiveShelf (Decode.decodeValue decodeShelf))
-      animationTick = Browser.Events.onAnimationFrame Tick
-  in Sub.batch [gotShelf, animationTick]
+      resize = Browser.Events.onResize (\w h -> WindowResize {width=w, height=h})
+  in Sub.batch [gotShelf, resize]
 
 initalCmd : Cmd Msg
 initalCmd = Cmd.batch
@@ -222,11 +226,9 @@ initalCmd = Cmd.batch
   , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
   ]
 
-
-
-main : Program () Model Msg
+main : Program {width : Int, height : Int} Model Msg
 main = Browser.element
-  { init = \_ -> (initialModel, initalCmd)
+  { init = \window -> (setDevice window initialModel, initalCmd)
   , view = view
   , update = update
   , subscriptions = subscriptions
