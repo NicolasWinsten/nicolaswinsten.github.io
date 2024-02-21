@@ -35,6 +35,11 @@
 			// this will most likely break either because goodreads HTML structure changes or the
 			// CORS proxy server stops working
 
+			/***
+			 * fetch the html for one of my goodreads shelves and parse out the books.
+			 * (only works if the desktop html is retrieved, mobile html doesn't contain the isbns)
+			 * 
+			 */
 			async function retrieveGoodreadsShelf(shelf, numBooks) {
 				let goodreadsUrl = `https://www.goodreads.com/review/list/98059963-nicolas?shelf=${shelf}&per_page=${numBooks}`
 				let doc = await retrieveDocument(proxy + goodreadsUrl)

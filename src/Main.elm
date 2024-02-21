@@ -8,8 +8,6 @@ import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
 import Element.Border
 import Browser.Events
-import Time
-import Html
 
 port log : String -> Cmd msg
 
@@ -30,15 +28,14 @@ type Shelf = Shelf String (List Book)
 type alias Model =
   { currentReads : Loadable Shelf
   , recentlyRead : Loadable Shelf
-  , device : Device
+  , device : DeviceClass
   }
 
-initialModel = { currentReads=Loading, recentlyRead=Loading, device={class=Desktop, orientation=Landscape} }
+initialModel = { currentReads=Loading, recentlyRead=Loading, device=Desktop }
 
 type Msg
   = ReceivedShelf (Result Decode.Error Shelf)
   | WindowResize {width : Int, height : Int}
-  | Oops String
 
 {- goodreads withdrew API support...
 so I gotta scrape the site manually
@@ -66,12 +63,12 @@ takeBestReads (Shelf name books) =
 
 
 setDevice : {width : Int, height : Int} -> Model -> Model
-setDevice window model = {model | device=classifyDevice window}
+setDevice window model =
+  let deviceClass = .class (classifyDevice window)
+  in {model | device=deviceClass}
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
-    Oops err -> (model, log err)
-
     ReceivedShelf (Ok (Shelf "read" _ as shelf)) ->
       ({model | recentlyRead=Loaded (takeBestReads shelf)}, Cmd.none)
 
@@ -87,11 +84,13 @@ update msg model = case msg of
 
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
 
-header = el
-  [ width fill, Background.tiled "images/starbackground.gif"]
-  ( wrappedRow [padding 15, spaceEvenly]
-    [ image [] {src="images/text.gif", description="nicolas winsten"}]
-  )
+isMobile device = device == Phone || device == Tablet
+
+header {device} =
+  let textWidth = if isMobile device then [width fill] else [] 
+  in el
+  [ width fill, Background.tiled "images/starbackground.gif", padding 20]
+  (image textWidth {src="images/text.gif", description="nicolas winsten"})
 
 interests = wrappedRow [Font.center]
   [ paragraph [centerY, centerX] [text "my main interests are functional programming, compilers, and reading non-fiction"]
@@ -113,9 +112,11 @@ doodads = textColumn [spacing 15]
     ]
   ]
 
-email = wrappedRow []
+email {device} =
+  let fill_ = if isMobile device then [width fill] else []
+  in wrappedRow fill_
   [ image [] {src="images/mail_spin.gif", description="email"}
-  , image [] {src="images/email_text.gif", description="nicolasd dot winsten at gmail dot com"}
+  , image fill_ {src="images/email_text.gif", description="nicolasd dot winsten at gmail dot com"}
   ]
 
 fade : List (Color, Int) -> Attribute msg
@@ -171,7 +172,7 @@ goodreadsLink = newTabLink [Font.underline]
 
 viewBookShelves : Model -> Element a
 viewBookShelves {currentReads, recentlyRead} = column [spacing 40, centerX]
-  [ wrappedRow [centerX, width fill]
+  [ wrappedRow [centerX, width fill, spaceEvenly]
     [ el [width fill] <| el [centerX] goodreadsLink
     , el [width fill] <| el [centerX] (viewShelf "what i'm currently reading" currentReads)
     ]
@@ -188,7 +189,7 @@ body model = column
   [ el [centerX] interests
   , el [centerX] doodads
   , viewBookShelves model
-  , el [alignRight] email
+  , el [if isMobile model.device then width fill else alignRight] (email model)
   ]
 
 view : Model -> Element a
@@ -197,7 +198,7 @@ view model = column
   , height fill
   , Font.family [Font.typeface "Comic Sans MS", Font.typeface "Comic Sans", Font.sansSerif]
   ]
-  [ header
+  [ header model
   , body model
   ]
 
