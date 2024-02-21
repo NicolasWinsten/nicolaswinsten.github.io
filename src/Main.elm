@@ -171,9 +171,9 @@ goodreadsLink = newTabLink [Font.underline]
 
 viewBookShelves : Model -> Element a
 viewBookShelves {currentReads, recentlyRead} = column [spacing 40, centerX]
-  [ wrappedRow [spaceEvenly, width fill]
-    [ goodreadsLink
-    , (viewShelf "what i'm currently reading" currentReads)
+  [ wrappedRow [centerX, width fill]
+    [ el [width fill] <| el [centerX] goodreadsLink
+    , el [width fill] <| el [centerX] (viewShelf "what i'm currently reading" currentReads)
     ]
   , viewShelf "good books i read recently" recentlyRead
   ]
@@ -191,18 +191,15 @@ body model = column
   , el [alignRight] email
   ]
 
-view : Model -> Html.Html a
-view model =
-  let content = layout [] <|
-        column
-        [ width fill
-        , height fill
-        , Font.family [Font.typeface "Comic Sans MS", Font.typeface "Comic Sans", Font.sansSerif]
-        ]
-        [ header
-        , body model
-        ]
-  in Html.div [] [content]
+view : Model -> Element a
+view model = column
+  [ width fill
+  , height fill
+  , Font.family [Font.typeface "Comic Sans MS", Font.typeface "Comic Sans", Font.sansSerif]
+  ]
+  [ header
+  , body model
+  ]
 
 bookDecoder : Decoder Book
 bookDecoder = Decode.map2 Book
@@ -229,7 +226,7 @@ initalCmd = Cmd.batch
 main : Program {width : Int, height : Int} Model Msg
 main = Browser.element
   { init = \window -> (setDevice window initialModel, initalCmd)
-  , view = view
+  , view = view >> layout []
   , update = update
   , subscriptions = subscriptions
   }

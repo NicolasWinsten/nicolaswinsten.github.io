@@ -38,7 +38,6 @@
 			async function retrieveGoodreadsShelf(shelf, numBooks) {
 				let goodreadsUrl = `https://www.goodreads.com/review/list/98059963-nicolas?shelf=${shelf}&per_page=${numBooks}`
 				let doc = await retrieveDocument(proxy + goodreadsUrl)
-				console.log("received", shelf, "shelf")
 				// parse the books from the html table
 				let bookTableRows = Array.from(doc.querySelectorAll("tbody#booksBody > tr"))
 				let books = bookTableRows.map(entry => ({
