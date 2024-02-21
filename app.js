@@ -11650,11 +11650,16 @@ var $author$project$Main$update = F2(
 				$elm$core$Platform$Cmd$none);
 		}
 	});
+var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
+	return {$: 5, a: a};
+};
+var $mdgriffith$elm_ui$Internal$Model$Bottom = 2;
+var $mdgriffith$elm_ui$Element$alignBottom = $mdgriffith$elm_ui$Internal$Model$AlignY(2);
 var $mdgriffith$elm_ui$Internal$Model$AlignX = function (a) {
 	return {$: 6, a: a};
 };
-var $mdgriffith$elm_ui$Internal$Model$Right = 2;
-var $mdgriffith$elm_ui$Element$alignRight = $mdgriffith$elm_ui$Internal$Model$AlignX(2);
+var $mdgriffith$elm_ui$Internal$Model$Left = 0;
+var $mdgriffith$elm_ui$Element$alignLeft = $mdgriffith$elm_ui$Internal$Model$AlignX(0);
 var $mdgriffith$elm_ui$Element$rgb255 = F3(
 	function (red, green, blue) {
 		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, red / 255, green / 255, blue / 255, 1);
@@ -12355,9 +12360,6 @@ var $author$project$Main$email = function (_v0) {
 				{A: 'nicolasd dot winsten at gmail dot com', E: 'images/email_text.gif'})
 			]));
 };
-var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
-	return {$: 5, a: a};
-};
 var $mdgriffith$elm_ui$Internal$Model$CenterY = 1;
 var $mdgriffith$elm_ui$Element$centerY = $mdgriffith$elm_ui$Internal$Model$AlignY(1);
 var $author$project$Main$interests = A2(
@@ -12391,6 +12393,21 @@ var $mdgriffith$elm_ui$Element$padding = function (x) {
 			f,
 			f,
 			f));
+};
+var $mdgriffith$elm_ui$Internal$Model$Scale = function (a) {
+	return {$: 5, a: a};
+};
+var $mdgriffith$elm_ui$Internal$Model$TransformComponent = F2(
+	function (a, b) {
+		return {$: 10, a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$scale = $mdgriffith$elm_ui$Internal$Flag$flag(23);
+var $mdgriffith$elm_ui$Element$scale = function (n) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$TransformComponent,
+		$mdgriffith$elm_ui$Internal$Flag$scale,
+		$mdgriffith$elm_ui$Internal$Model$Scale(
+			_Utils_Tuple3(n, n, 1)));
 };
 var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
 var $mdgriffith$elm_ui$Element$newTabLink = F2(
@@ -12548,7 +12565,8 @@ var $author$project$Main$viewBookShelves = function (_v0) {
 					[
 						$mdgriffith$elm_ui$Element$centerX,
 						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-						$mdgriffith$elm_ui$Element$spaceEvenly
+						$mdgriffith$elm_ui$Element$spaceEvenly,
+						$mdgriffith$elm_ui$Element$spacing(50)
 					]),
 				_List_fromArray(
 					[
@@ -12587,7 +12605,7 @@ var $author$project$Main$body = function (model) {
 				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
 				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 				$mdgriffith$elm_ui$Element$padding(20),
-				$mdgriffith$elm_ui$Element$spacing(40)
+				$mdgriffith$elm_ui$Element$spacing(50)
 			]),
 		_List_fromArray(
 			[
@@ -12604,9 +12622,14 @@ var $author$project$Main$body = function (model) {
 				$author$project$Main$viewBookShelves(model),
 				A2(
 				$mdgriffith$elm_ui$Element$el,
-				_List_fromArray(
+				$author$project$Main$isMobile(model._) ? _List_fromArray(
 					[
-						$author$project$Main$isMobile(model._) ? $mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill) : $mdgriffith$elm_ui$Element$alignRight
+						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+					]) : _List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$alignBottom,
+						$mdgriffith$elm_ui$Element$alignLeft,
+						$mdgriffith$elm_ui$Element$scale(0.8)
 					]),
 				$author$project$Main$email(model))
 			]));

@@ -172,7 +172,7 @@ goodreadsLink = newTabLink [Font.underline]
 
 viewBookShelves : Model -> Element a
 viewBookShelves {currentReads, recentlyRead} = column [spacing 40, centerX]
-  [ wrappedRow [centerX, width fill, spaceEvenly]
+  [ wrappedRow [centerX, width fill, spaceEvenly, spacing 50]
     [ el [width fill] <| el [centerX] goodreadsLink
     , el [width fill] <| el [centerX] (viewShelf "what i'm currently reading" currentReads)
     ]
@@ -184,12 +184,14 @@ body model = column
   , width fill
   , height fill
   , padding 20
-  , spacing 40
+  , spacing 50
   ]
   [ el [centerX] interests
   , el [centerX] doodads
   , viewBookShelves model
-  , el [if isMobile model.device then width fill else alignRight] (email model)
+  , el
+    (if isMobile model.device then [width fill] else [alignBottom, alignLeft, scale 0.8])
+    (email model)
   ]
 
 view : Model -> Element a
