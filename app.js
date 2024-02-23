@@ -12153,15 +12153,17 @@ var $author$project$Main$viewBook = function (_v0) {
 	var isbn = _v0.bo;
 	return A2(
 		$mdgriffith$elm_ui$Element$newTabLink,
-		_List_Nil,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$Border$width(5)
+			]),
 		{
 			aK: A2(
 				$mdgriffith$elm_ui$Element$image,
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$width(
-						$mdgriffith$elm_ui$Element$px($author$project$Main$coverWidth)),
-						$mdgriffith$elm_ui$Element$Border$width(5)
+						$mdgriffith$elm_ui$Element$px($author$project$Main$coverWidth))
 					]),
 				{A: 'book cover', F: 'https://covers.openlibrary.org/b/isbn/' + (isbn + '-L.jpg')}),
 			aW: 'https://openlibrary.org/isbn/' + isbn

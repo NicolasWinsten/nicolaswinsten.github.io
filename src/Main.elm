@@ -7,6 +7,7 @@ import Element.Font as Font
 import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
 import Element.Border
+import Element.Border as Border
 
 port log : String -> Cmd msg
 
@@ -135,9 +136,9 @@ background = column [width fill, height fill] [clouds, beach]
 coverWidth = 150
 
 viewBook : Book -> Element a
-viewBook {isbn} = newTabLink []
+viewBook {isbn} = newTabLink [Border.width 5]
   { url="https://openlibrary.org/isbn/" ++ isbn
-  , label=image [width (px coverWidth), Element.Border.width 5]
+  , label=image [width (px coverWidth)]
     { src="https://covers.openlibrary.org/b/isbn/" ++ isbn ++ "-L.jpg"
     , description="book cover"
     }
