@@ -7,7 +7,6 @@ import Element.Font as Font
 import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
 import Element.Border
-import Browser.Events
 
 port log : String -> Cmd msg
 
@@ -28,14 +27,13 @@ type Shelf = Shelf String (List Book)
 type alias Model =
   { currentReads : Loadable Shelf
   , recentlyRead : Loadable Shelf
-  , device : DeviceClass
+  , mobile : Bool
   }
 
-initialModel = { currentReads=Loading, recentlyRead=Loading, device=Desktop }
+initialModel = { currentReads=Loading, recentlyRead=Loading, mobile=False }
 
 type Msg
   = ReceivedShelf (Result Decode.Error Shelf)
-  | WindowResize {width : Int, height : Int}
 
 {- goodreads withdrew API support...
 so I gotta scrape the site manually
@@ -61,12 +59,6 @@ takeBestReads (Shelf name books) =
         |> List.take 5
   in Shelf name bestReads
 
-
-setDevice : {width : Int, height : Int} -> Model -> Model
-setDevice window model =
-  let deviceClass = .class (classifyDevice window)
-  in {model | device=deviceClass}
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
     ReceivedShelf (Ok (Shelf "read" _ as shelf)) ->
@@ -79,15 +71,10 @@ update msg model = case msg of
 
     ReceivedShelf (Err err) -> (model, log (Decode.errorToString err))
 
-    WindowResize window -> (setDevice window model, Cmd.none)
-
-
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
 
-isMobile device = device == Phone || device == Tablet
-
-header {device} =
-  let textWidth = if isMobile device then [width fill] else [] 
+header {mobile} =
+  let textWidth = if mobile then [width fill] else [] 
   in el
   [ width fill, Background.tiled "images/starbackground.gif", padding 20]
   (image textWidth {src="images/text.gif", description="nicolas winsten"})
@@ -97,12 +84,14 @@ interests = wrappedRow [Font.center]
   , image [] {src="images/lambdaspin.gif", description=""}
   ]
 
-largerText = Font.size 25
+fontSize {mobile} =
+  if mobile then Font.size 36
+  else Font.size 24
 
 doodads = textColumn [spacing 15]
   [ wrappedRow [Font.center]
-    [ paragraph [largerText] [text "doodads"]
-    , image [] {src="images/walkingrobot.gif", description="walking robot"}
+    [ paragraph [] [text "doodads"]
+    , image [width fill] {src="images/walkingrobot.gif", description="walking robot"}
     , paragraph [] [text "a ", hyperlink "turing" "turing machine simulator"]
     ]
   , paragraph []
@@ -112,8 +101,8 @@ doodads = textColumn [spacing 15]
     ]
   ]
 
-email {device} =
-  let fill_ = if isMobile device then [width fill] else []
+email {mobile} =
+  let fill_ = if mobile then [width fill] else []
   in wrappedRow fill_
   [ image [] {src="images/mail_spin.gif", description="email"}
   , image fill_ {src="images/email_text.gif", description="nicolasd dot winsten at gmail dot com"}
@@ -183,14 +172,14 @@ body model = column
   [ behindContent background
   , width fill
   , height fill
-  , padding 20
+  , padding 30
   , spacing 50
   ]
   [ el [centerX] interests
   , el [centerX] doodads
   , viewBookShelves model
   , el
-    (if isMobile model.device then [width fill] else [alignBottom, alignLeft, scale 0.8])
+    (if model.mobile then [width fill] else [alignBottom, alignLeft, scale 0.8])
     (email model)
   ]
 
@@ -199,6 +188,7 @@ view model = column
   [ width fill
   , height fill
   , Font.family [Font.typeface "Comic Sans MS", Font.typeface "Comic Sans", Font.sansSerif]
+  , fontSize model
   ]
   [ header model
   , body model
@@ -217,8 +207,7 @@ decodeShelf = Decode.map2 Shelf
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   let gotShelf = Sub.map ReceivedShelf (receiveShelf (Decode.decodeValue decodeShelf))
-      resize = Browser.Events.onResize (\w h -> WindowResize {width=w, height=h})
-  in Sub.batch [gotShelf, resize]
+  in Sub.batch [gotShelf]
 
 initalCmd : Cmd Msg
 initalCmd = Cmd.batch
@@ -226,9 +215,9 @@ initalCmd = Cmd.batch
   , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
   ]
 
-main : Program {width : Int, height : Int} Model Msg
+main : Program {mobile : Bool} Model Msg
 main = Browser.element
-  { init = \window -> (setDevice window initialModel, initalCmd)
+  { init = \{mobile} -> ({initialModel | mobile=mobile}, initalCmd)
   , view = view >> layout []
   , update = update
   , subscriptions = subscriptions
