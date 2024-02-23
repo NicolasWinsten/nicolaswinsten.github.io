@@ -39,7 +39,7 @@
 			// CORS proxy server stops working
 
 			/***
-			 * fetch the html for one of my goodreads shelves and parse out the books.
+			 * fetch the html for one of my goodreads shelves and scrape out the books.
 			 * (only works if the desktop html is retrieved, mobile html doesn't contain the isbns)
 			 * 
 			 */
@@ -48,11 +48,17 @@
 				let doc = await retrieveDocument(proxy + goodreadsUrl)
 				// parse the books from the html table
 				let bookTableRows = Array.from(doc.querySelectorAll("tbody#booksBody > tr"))
+
 				let books = bookTableRows.map(entry => ({
 					// from each row in the table, retrieve its isbn and rating
 					isbn : entry.querySelector("td.field.isbn13 > .value").textContent.trim(),
 					// get the rating by counting the number of filled stars in the entry
-					rating : Number(entry.querySelectorAll("td.field.rating .staticStar.p10").length)
+					rating : Number(entry.querySelectorAll("td.field.rating .staticStar.p10").length),
+					// a string indicating the date/month i finished the book
+					read_date : entry.querySelector("td.field.date_read > .value").textContent.trim(),
+					// author name (last name, first name); sometimes there is an asterisk next to the name so remove it
+					author : entry.querySelector("td.field.author > .value").textContent.replace("\*", "").trim(),
+					title : entry.querySelector("td.field.title > .value").textContent.trim()
 				}))
 
 				return books
