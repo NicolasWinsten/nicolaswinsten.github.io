@@ -6,7 +6,6 @@ import Element exposing (..)
 import Element.Font as Font
 import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
-import Element.Border
 import Element.Border as Border
 
 port log : String -> Cmd msg
