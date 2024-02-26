@@ -20,7 +20,7 @@ viewLoadable f l = case l of
   Loading -> image [] {src="images/hourglass.gif", description="spinning hourglass"}
   Loaded value -> f value
 
-type alias Book = {isbn : ISBN, rating : Int}
+type alias Book = {rating : Int, title : String, author : String, url : String, cover : String}
 
 type Shelf = Shelf String (List Book)
 
@@ -133,15 +133,15 @@ beach = el
 background = column [width fill, height fill] [clouds, beach]
 
 coverWidth = 150
-
 viewBook : Book -> Element a
-viewBook {isbn} = newTabLink [Border.width 5]
-  { url="https://openlibrary.org/isbn/" ++ isbn
+viewBook {title, url, cover} = newTabLink [Border.width 5]
+  { url=url
   , label=image [width (px coverWidth)]
-    { src="https://covers.openlibrary.org/b/isbn/" ++ isbn ++ "-L.jpg"
-    , description="book cover"
+    { src=cover
+    , description=title
     }
   }
+      
 
 viewBookList : Shelf -> Element a
 viewBookList (Shelf _ books) = wrappedRow [spacing 20] (List.map viewBook books)
@@ -161,7 +161,7 @@ goodreadsLink = newTabLink [Font.underline]
 
 viewBookShelves : Model -> Element a
 viewBookShelves {currentReads, recentlyRead} = column [spacing 40, centerX]
-  [ wrappedRow [centerX, width fill, spaceEvenly, spacing 50]
+  [ wrappedRow [centerX, width fill, spaceEvenly, spacing 30]
     [ el [width fill] <| el [centerX] goodreadsLink
     , el [width fill] <| el [centerX] (viewShelf "what i'm currently reading" currentReads)
     ]
@@ -195,9 +195,12 @@ view model = column
   ]
 
 bookDecoder : Decoder Book
-bookDecoder = Decode.map2 Book
-  (Decode.field "isbn" Decode.string)
+bookDecoder = Decode.map5 Book
   (Decode.field "rating" Decode.int)
+  (Decode.field "title" Decode.string)
+  (Decode.field "author" Decode.string)
+  (Decode.field "url" Decode.string)
+  (Decode.field "cover" Decode.string)
 
 decodeShelf : Decoder Shelf
 decodeShelf = Decode.map2 Shelf
