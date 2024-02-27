@@ -58,6 +58,7 @@
 			// use this proxy server to get around CORS
 			// const proxy = "https://corsproxy.io/?"
 			const proxy = "https://warm-wildwood-58268-a34c03ce30e7.herokuapp.com/"
+			const goodreads = "https://goodreads.com"
 
 			// parse the html at the given url into a Document object
 			async function retrieveDocument(url) {
@@ -65,6 +66,32 @@
 				let text = await response.text()
 				let parser = new DOMParser()
 				return parser.parseFromString(text, "text/html")
+			}
+
+			function scrapeBook(node) {
+				return {
+					// get the rating by counting the number of filled stars in the entry
+					rating : Number(node.querySelectorAll("td.field.rating .staticStar.p10").length),
+					// author name (last name, first name); sometimes there is an asterisk next to the name so remove it
+					author : node.querySelector("td.field.author > .value").textContent.replace("\*", "").trim(),
+					title : node.querySelector("td.field.title > .value").textContent.trim(),
+					url : goodreads + node.querySelector("td.field.title > .value > a").getAttribute("href"),
+					// cover image from goodreads, (remove flags like '._SY75_.' to remove compression)
+					cover : node.querySelector("td.field.cover img").getAttribute("src").replace(/\._.+_\./, ".")
+				}
+			}
+			
+			/**
+			 * scrape a book from the mobile html
+			 */
+			function scrapeBookMobile(node) {
+				return {
+					rating : 0,
+					author	: node.querySelector(".authorName").textContent,
+					title 	: node.querySelector(".bookTitle").textContent,
+					url			: goodreads + node.querySelector(".bookCover").getAttribute("href"),
+					cover		: node.querySelector(".bookCover > img").getAttribute("src").replace(/\._.+_\./, ".")
+				}
 			}
 
 			// goodreads does not have an API... so I just do some nasty client-side webscraping.
@@ -77,28 +104,17 @@
 			 * 
 			 */
 			async function retrieveGoodreadsShelf(shelf, numBooks) {
-				let goodreads = "https://www.goodreads.com"
 				let goodreadsUrl = `${goodreads}/review/list/98059963-nicolas?shelf=${shelf}&per_page=${numBooks}`
 				let doc = await retrieveDocument(proxy + goodreadsUrl)
 				// parse the books from the html table
 				let bookTableRows = Array.from(doc.querySelectorAll("tbody#booksBody > tr"))
 
-				let books = bookTableRows.map(entry => ({
-					// from each row in the table, retrieve its isbn and rating
-					isbn : entry.querySelector("td.field.isbn13 > .value").textContent.trim(),
-					// get the rating by counting the number of filled stars in the entry
-					rating : Number(entry.querySelectorAll("td.field.rating .staticStar.p10").length),
-					// a string indicating the date/month i finished the book
-					read_date : entry.querySelector("td.field.date_read > .value").textContent.trim(),
-					// author name (last name, first name); sometimes there is an asterisk next to the name so remove it
-					author : entry.querySelector("td.field.author > .value").textContent.replace("\*", "").trim(),
-					title : entry.querySelector("td.field.title > .value").textContent.trim(),
-					url : goodreads + entry.querySelector("td.field.title > .value > a").getAttribute("href"),
-					// cover image from goodreads, (remove flags like '._SY75_.' to remove compression)
-					cover : entry.querySelector("td.field.cover img").getAttribute("src").replace(/\._.+_\./, ".")
-				}))
-
-				return books
+				if (bookTableRows.length == 0) {
+					// html is probably mobile version so scrape for that
+					return Array.from(doc.querySelectorAll(".book")).map(scrapeBookMobile)
+				} else {
+					return bookTableRows.map(scrapeBook)
+				}
 			}
 
 			app.ports.fetchGoodReadsShelf.subscribe(({shelf, numBooks}) => {

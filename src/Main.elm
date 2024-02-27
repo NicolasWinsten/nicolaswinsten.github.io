@@ -7,6 +7,7 @@ import Element.Font as Font
 import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
 import Element.Border as Border
+import List exposing (repeat)
 
 port log : String -> Cmd msg
 
@@ -17,7 +18,7 @@ type Loadable a = Loading | Loaded a | Failed
 viewLoadable : (a -> Element b) -> Loadable a -> Element b
 viewLoadable f l = case l of
   Failed -> text "X"
-  Loading -> image [] {src="images/hourglass.gif", description="spinning hourglass"}
+  Loading -> image [centerX] {src="images/hourglass.gif", description="spinning hourglass"}
   Loaded value -> f value
 
 type alias Book = {rating : Int, title : String, author : String, url : String, cover : String}
@@ -46,26 +47,16 @@ port fetchGoodReadsShelf : {shelf : String, numBooks : Int} -> Cmd msg
 
 port receiveShelf : (Value -> msg) -> Sub msg
 
-
-{-| discard the books that received a rating of 3 stars or less
-(0 rating means the book is not rated so keep it)
-
-discard all but the first 5
--}
-takeBestReads : Shelf -> Shelf
-takeBestReads (Shelf name books) =
-  let bestReads = books
-        |> List.filter (\{rating} -> rating == 0 || rating > 3)
-        |> List.take 5
-  in Shelf name bestReads
+takeBooks : Int -> Shelf -> Shelf
+takeBooks num (Shelf name books) = Shelf name (List.take num books)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = case msg of
     ReceivedShelf (Ok (Shelf "read" _ as shelf)) ->
-      ({model | recentlyRead=Loaded (takeBestReads shelf)}, Cmd.none)
+      ({model | recentlyRead=Loaded (takeBooks 5 shelf)}, Cmd.none)
 
     ReceivedShelf (Ok (Shelf "currently-reading" _ as shelf)) ->
-      ({model | currentReads=Loaded shelf}, Cmd.none)
+      ({model | currentReads=Loaded (takeBooks 5 shelf)}, Cmd.none)
 
     ReceivedShelf (Ok (Shelf _ _)) -> (model, Cmd.none)
 
@@ -117,6 +108,8 @@ black = rgb255 0 0 0
 cloudColor = rgb255 220 232 255
 transparent = rgba255 0 0 0 0
 
+gold = rgb255 255 215 0
+
 clouds = el
   [ width fill, height (fillPortion 1)
   , Background.tiled "images/clouds.png", fade [(black, 1), (transparent, 1), (cloudColor, 1)]
@@ -132,24 +125,36 @@ beach = el
 
 background = column [width fill, height fill] [clouds, beach]
 
-coverWidth = 150
-viewBook : Book -> Element a
-viewBook {title, url, cover} = newTabLink [Border.width 5]
+
+viewStarRating : Int -> Element msg
+viewStarRating rating = row
+  [ Background.color (rgba 0 0 0 0.5)
+  , Border.rounded 5
+  ]
+  (repeat rating (image [] {src="images/star.gif", description=""}))
+
+coverWidth {mobile} = if mobile then 300 else 150
+
+viewBook : Model -> Book -> Element a
+viewBook model {title, url, cover, rating} =
+  let borderColor = if rating > 3 then gold else black
+      stars = if rating > 0 then el [alignBottom, centerX] (viewStarRating rating) else none
+  in newTabLink [Border.width 5, Border.color borderColor, inFront stars]
   { url=url
-  , label=image [width (px coverWidth)]
+  , label=image [width <| px <| coverWidth model]
     { src=cover
     , description=title
     }
   }
       
 
-viewBookList : Shelf -> Element a
-viewBookList (Shelf _ books) = wrappedRow [spacing 20] (List.map viewBook books)
+viewBookList : Model -> Shelf -> Element a
+viewBookList model (Shelf _ books) = wrappedRow [spacing 20] (List.map (viewBook model) books)
 
-viewShelf : String -> Loadable Shelf -> Element a
-viewShelf topic shelf = case shelf of
+viewShelf : Model -> String -> Loadable Shelf -> Element a
+viewShelf model topic shelf = case shelf of
   Loaded (Shelf _ []) -> none
-  _ -> column [spacing 20] [text topic, viewLoadable viewBookList shelf]
+  _ -> column [spacing 20] [text topic, viewLoadable (viewBookList model) shelf]
 
 
 goodreadsLink = newTabLink [Font.underline]
@@ -159,14 +164,7 @@ goodreadsLink = newTabLink [Font.underline]
       {src="images/book.gif", description="good reads link"}
   }
 
-viewBookShelves : Model -> Element a
-viewBookShelves {currentReads, recentlyRead} = column [spacing 40, centerX]
-  [ wrappedRow [centerX, width fill, spaceEvenly, spacing 30]
-    [ el [width fill] <| el [centerX] goodreadsLink
-    , el [width fill] <| el [centerX] (viewShelf "what i'm currently reading" currentReads)
-    ]
-  , viewShelf "good books i read recently" recentlyRead
-  ]
+
 
 body model = column
   [ behindContent background
@@ -177,7 +175,11 @@ body model = column
   ]
   [ el [centerX] interests
   , el [centerX] doodads
-  , viewBookShelves model
+  , wrappedRow [centerX, spacing 30]
+    [ goodreadsLink
+    , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
+    ]
+  , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
   , el
     (if model.mobile then [width fill] else [alignBottom, alignLeft, scale 0.8])
     (email model)
@@ -212,17 +214,38 @@ subscriptions _ =
   let gotShelf = Sub.map ReceivedShelf (receiveShelf (Decode.decodeValue decodeShelf))
   in Sub.batch [gotShelf]
 
-initalCmd : Cmd Msg
-initalCmd = Cmd.batch
-  [ fetchGoodReadsShelf {shelf="read", numBooks=20}
+initialCmd : Cmd Msg
+initialCmd = Cmd.batch
+  [ fetchGoodReadsShelf {shelf="read", numBooks=5}
   , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
   ]
 
 main : Program {mobile : Bool} Model Msg
 main = Browser.element
-  { init = \{mobile} -> ({initialModel | mobile=mobile}, initalCmd)
+  { init = \{mobile} -> ({initialModel | mobile=mobile}, initialCmd)
   , view = view >> layout []
   , update = update
   , subscriptions = subscriptions
   }
-  
+
+
+test = \_ -> (testModel, Cmd.none)
+
+testModel : Model
+testModel =
+  { currentReads=Loaded (shelfOf 1)
+  , recentlyRead=Loaded (shelfOf 5)
+  , mobile=False
+  }
+
+testBook =
+  { author = "James, C.L.R."
+  , cover = "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1684793790l/125078769.jpg"
+  , rating = 5
+  , title = "Toussaint Louverture: The Story of the Only Successful Slave Revolt in History"
+  , url = "https://www.goodreads.com/book/show/125078769-toussaint-louverture"
+  }
+
+emptyShelf = Shelf "" []
+
+shelfOf num = Shelf "" (repeat num testBook)
