@@ -79,16 +79,20 @@ fontSize {mobile} =
   if mobile then Font.size 36
   else Font.size 24
 
-doodads = textColumn [spacing 15]
+doodads = textColumn [spacing 30]
   [ wrappedRow [Font.center]
     [ paragraph [] [text "doodads"]
     , image [width fill] {src="images/walkingrobot.gif", description="walking robot"}
     , paragraph [] [text "a ", hyperlink "turing" "turing machine simulator"]
     ]
-  , paragraph []
+  , paragraph [Font.center]
     [ text "a peer-to-peer ", hyperlink "racer" "Wikipedia game"
     , image [] {src="images/wikilogo.gif", description=""}
     , text " to play with your friends"
+    ]
+  , paragraph [Font.center]
+    [ text "a ", hyperlink "wikiweb" "3D interactive graph visualization"
+    , text " for wikipedia categories (meant for desktop and mouse)"
     ]
   ]
 
