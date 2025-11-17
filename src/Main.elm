@@ -183,7 +183,8 @@ body model = column
     [ goodreadsLink
     , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
     ]
-  , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
+  -- hide recently read list because it reveals too much about my reading habits
+  -- , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
   , el
     (if model.mobile then [width fill] else [alignBottom, alignLeft, scale 0.8])
     (email model)
