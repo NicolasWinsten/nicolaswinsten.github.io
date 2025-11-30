@@ -4,6 +4,4 @@
 [submodule "racer"]
 	path = racer
 	url = https://github.com/NicolasWinsten/racer
-[submodule "wikiweb"]
-	path = wikiweb
-	url = https://github.com/NicolasWinsten/wikiweb
+
