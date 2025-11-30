@@ -83,15 +83,15 @@ doodads = textColumn [spacing 30]
   [ wrappedRow [Font.center]
     [ paragraph [] [text "doodads"]
     , image [width fill] {src="images/walkingrobot.gif", description="walking robot"}
-    , paragraph [] [text "a ", hyperlink "turing" "turing machine simulator"]
+    , paragraph [] [text "a ", hyperlink "https://nicolaswinsten.com/turing" "turing machine simulator"]
     ]
   , paragraph [Font.center]
-    [ text "a peer-to-peer ", hyperlink "racer" "Wikipedia game"
+    [ text "a peer-to-peer ", hyperlink "https://nicolaswinsten.com/racer" "Wikipedia game"
     , image [] {src="images/wikilogo.gif", description=""}
     , text " to play with your friends"
     ]
   , paragraph [Font.center]
-    [ text "a ", hyperlink "wikiweb" "3D interactive graph visualization"
+    [ text "a ", hyperlink "https://nicolaswinsten.com/wikiweb" "3D interactive graph visualization"
     , text " for wikipedia categories (meant for desktop and mouse)"
     ]
   ]
@@ -181,7 +181,7 @@ body model = column
   , el [centerX] doodads
   , wrappedRow [centerX, spacing 30]
     [ goodreadsLink
-    , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
+    -- , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
     ]
   -- hide recently read list because it reveals too much about my reading habits
   -- , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
