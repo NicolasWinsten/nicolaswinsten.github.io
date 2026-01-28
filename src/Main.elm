@@ -140,7 +140,7 @@ doodads model = wrappedRow [Font.center, spacing 10]
     , popup "p2p" (Dict.get "p2p" model.windows |> Maybe.withDefault initialWindowState) "P2P Wikipedia Race!"  "https://nicolaswinsten.com/racer" <| paragraph [Font.center]
     [ image [] {src="images/wikilogo.gif", description=""}, text "a peer-to-peer Wikipedia game to play with your friends"]
     , popup "graph" (Dict.get "graph" model.windows |> Maybe.withDefault initialWindowState) "3D wikipedia graph" "https://nicolaswinsten.com/wikiweb" <| paragraph [Font.center]
-    [ text "a 3D traversible graph visualization for wikipedia categories (meant for desktop and mouse)"]
+    [ text "a 3D traversible graph visualization for wikipedia"]
     , popup "turing" (Dict.get "turing" model.windows |> Maybe.withDefault initialWindowState) "Turing Machine Simulator" "https://nicolaswinsten.com/turing" <| paragraph [] [text "a turing machine simulator built in Scala.js"]
     ]
 
@@ -336,6 +336,10 @@ initialCmd = Cmd.batch
   [ fetchGoodReadsShelf {shelf="read", numBooks=5}
   , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
   , Task.perform (\vp -> WindowResized (round vp.viewport.width) (round vp.viewport.height)) Browser.Dom.getViewport
+  , Random.generate (SetOffset "zimi") (Random.pair (Random.int -50 50) (Random.int -50 50))
+  , Random.generate (SetOffset "p2p") (Random.pair (Random.int -50 50) (Random.int -50 50))
+  , Random.generate (SetOffset "graph") (Random.pair (Random.int -50 50) (Random.int -50 50))
+  , Random.generate (SetOffset "turing") (Random.pair (Random.int -50 50) (Random.int -50 50))
   ]
 
 main : Program {mobile : Bool} Model Msg
