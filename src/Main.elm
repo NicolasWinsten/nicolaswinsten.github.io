@@ -1,6 +1,9 @@
 port module Main exposing (..)
 
 import Browser
+import Browser.Events
+import Browser.Dom
+import Task
 import Element.Background as Background
 import Element exposing (..)
 import Element.Font as Font
@@ -42,6 +45,8 @@ type alias Model =
   , recentlyRead : Loadable Shelf
   , mobile : Bool
   , windows : Dict String WindowState
+  , windowWidth : Int
+  , windowHeight : Int
   }
 
 initialWindowState = { visible = True, offsetX = 0, offsetY = 0 }
@@ -56,12 +61,15 @@ initialModel =
       , ("graph", initialWindowState)
       , ("turing", initialWindowState)
       ]
+  , windowWidth = 0
+  , windowHeight = 0
   }
 
 type Msg
   = ReceivedShelf (Result Decode.Error Shelf)
   | ClickExit String
   | SetOffset String (Int, Int)
+  | WindowResized Int Int
 
 {- goodreads withdrew API support...
 so I gotta scrape the site manually
@@ -97,6 +105,9 @@ update msg model = case msg of
     SetOffset windowId (x, y) ->
       let updatedWindows = Dict.update windowId (Maybe.map (\w -> {w | visible = True, offsetX = x, offsetY = y})) model.windows
       in ({model | windows = updatedWindows}, Cmd.none)
+
+    WindowResized width height ->
+      ({model | windowWidth = width, windowHeight = height}, Cmd.none)
 
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
 
@@ -283,6 +294,7 @@ body model = column
   , spacing 50
   ]
   [ el [centerX] interests
+  , if model.mobile then text "MOBILE" else none
   , el [centerX] (doodads model)
   , wrappedRow [centerX, spacing 30]
     [ goodreadsLink
@@ -322,12 +334,16 @@ decodeShelf = Decode.map2 Shelf
 subscriptions : Model -> Sub Msg
 subscriptions _ =
   let gotShelf = Sub.map ReceivedShelf (receiveShelf (Decode.decodeValue decodeShelf))
-  in Sub.batch [gotShelf]
+  in Sub.batch 
+    [ gotShelf
+    , Browser.Events.onResize WindowResized
+    ]
 
 initialCmd : Cmd Msg
 initialCmd = Cmd.batch
   [ fetchGoodReadsShelf {shelf="read", numBooks=5}
   , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
+  , Task.perform (\vp -> WindowResized (round vp.viewport.width) (round vp.viewport.height)) Browser.Dom.getViewport
   ]
 
 main : Program {mobile : Bool} Model Msg
