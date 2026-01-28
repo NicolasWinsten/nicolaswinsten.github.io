@@ -116,7 +116,9 @@ update msg model = case msg of
       in ({model | windows = updatedWindows}, Cmd.none)
 
     WindowResized width height ->
-      ({model | windowWidth = width, windowHeight = height}, Cmd.none)
+      let deviceClass = .class <| classifyDevice {width = width, height = height}
+      in
+      ({model | windowWidth = width, windowHeight = height, mobile = deviceClass == Phone}, Cmd.none)
 
     StartDrag windowId x y ->
       ({model | dragging = Just windowId, dragStartX = x, dragStartY = y}, Cmd.none)
@@ -318,14 +320,13 @@ body model = column
   , spacing 50
   ]
   [ el [centerX] interests
-  , if model.mobile then text "MOBILE" else none
   , el [centerX] (doodads model)
   , wrappedRow [centerX, spacing 30]
     [ goodreadsLink
-    -- , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
+    , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
     ]
   -- hide recently read list because it reveals too much about my reading habits
-  -- , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
+  , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
   , el
     (if model.mobile then [width fill] else [alignBottom, alignLeft, scale 0.8])
     (email model)
