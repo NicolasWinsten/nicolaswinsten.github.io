@@ -35,6 +35,23 @@
 										bob 1s ease-in-out alternate infinite;
 			}
 
+			/* Any classes used inside the Elm UI code must use !important on all styles to override Elm UI styling */
+			.hover-brightness:hover {
+				filter : brightness(1.5) !important;
+			}
+
+			.depress:active {
+				filter : brightness(0.75) !important;
+			}
+
+		.hover-dotted {
+			border: 1px solid transparent !important;
+		}
+
+		.hover-dotted:hover {
+			border-color: black !important;
+			border-style: dotted !important;
+		}
 
 		</style>
 

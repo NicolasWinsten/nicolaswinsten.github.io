@@ -8,7 +8,11 @@ import Json.Decode as Decode exposing (Value, Decoder)
 import Json.Decode as Decode
 import Element.Border as Border
 import List exposing (repeat)
-
+import Html.Attributes exposing (class)
+import Element.Input exposing (button)
+import Random
+import Dict exposing (Dict)
+import Html.Events
 port log : String -> Cmd msg
 
 type alias ISBN = String 
@@ -25,16 +29,39 @@ type alias Book = {rating : Int, title : String, author : String, url : String, 
 
 type Shelf = Shelf String (List Book)
 
+type WindowId = Zimi | P2PGame | GraphViz | TuringMachine
+
+type alias WindowState =
+  { visible : Bool
+  , offsetX : Int
+  , offsetY : Int
+  }
+
 type alias Model =
   { currentReads : Loadable Shelf
   , recentlyRead : Loadable Shelf
   , mobile : Bool
+  , windows : Dict String WindowState
   }
 
-initialModel = { currentReads=Loading, recentlyRead=Loading, mobile=False }
+initialWindowState = { visible = True, offsetX = 0, offsetY = 0 }
+
+initialModel = 
+  { currentReads=Loading
+  , recentlyRead=Loading
+  , mobile=False
+  , windows = Dict.fromList
+      [ ("zimi", initialWindowState)
+      , ("p2p", initialWindowState)
+      , ("graph", initialWindowState)
+      , ("turing", initialWindowState)
+      ]
+  }
 
 type Msg
   = ReceivedShelf (Result Decode.Error Shelf)
+  | ClickExit String
+  | SetOffset String (Int, Int)
 
 {- goodreads withdrew API support...
 so I gotta scrape the site manually
@@ -62,6 +89,15 @@ update msg model = case msg of
 
     ReceivedShelf (Err err) -> (model, log (Decode.errorToString err))
 
+    ClickExit windowId ->
+      let updatedWindows = Dict.update windowId (Maybe.map (\w -> {w | visible = False})) model.windows
+          randomOffset = Random.pair (Random.int -100 100) (Random.int -100 100)
+      in ({model | windows = updatedWindows}, Random.generate (SetOffset windowId) randomOffset)
+
+    SetOffset windowId (x, y) ->
+      let updatedWindows = Dict.update windowId (Maybe.map (\w -> {w | visible = True, offsetX = x, offsetY = y})) model.windows
+      in ({model | windows = updatedWindows}, Cmd.none)
+
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
 
 header {mobile} =
@@ -79,21 +115,22 @@ fontSize {mobile} =
   if mobile then Font.size 36
   else Font.size 24
 
-doodads = textColumn [spacing 30]
+doodads model = textColumn [spacing 30]
   [ wrappedRow [Font.center]
     [ paragraph [] [text "doodads"]
     , image [width fill] {src="images/walkingrobot.gif", description="walking robot"}
-    , paragraph [] [text "a ", hyperlink "https://nicolaswinsten.com/turing" "turing machine simulator"]
+    , winXPWindow "zimi" "Zimi 字谜！" (Dict.get "zimi" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [] [hyperlink "https://zimi.nicolaswinston.com" "zimi", text ": a daily Chinese character puzzle"]
     ]
-  , paragraph [Font.center]
-    [ text "a peer-to-peer ", hyperlink "https://nicolaswinsten.com/racer" "Wikipedia game"
+  , winXPWindow "p2p" "P2P Wikipedia Race!" (Dict.get "p2p" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [Font.center]
+    [ text "a peer-to-peer ", hyperlink "https://nicolaswinston.com/racer" "Wikipedia game"
     , image [] {src="images/wikilogo.gif", description=""}
     , text " to play with your friends"
     ]
-  , paragraph [Font.center]
-    [ text "a ", hyperlink "https://nicolaswinsten.com/wikiweb" "3D interactive graph visualization"
+  , winXPWindow "graph" "3D interactive graph visualization" (Dict.get "graph" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [Font.center]
+    [ text "a ", hyperlink "https://nicolaswinston.com/wikiweb" "3D interactive graph visualization"
     , text " for wikipedia categories (meant for desktop and mouse)"
     ]
+  , winXPWindow "turing" "Turing Machine Simulator" (Dict.get "turing" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [] [text "a ", hyperlink "https://nicolaswinston.com/turing" "turing machine simulator"]
   ]
 
 email {mobile} =
@@ -168,6 +205,74 @@ goodreadsLink = newTabLink [Font.underline]
       {src="images/book.gif", description="good reads link"}
   }
 
+winXPTitleBar : String -> msg -> Element msg
+winXPTitleBar titleText onExit = row
+  [ width fill
+  , Background.color (rgb255 0 84 227)
+  , Font.color (rgb255 255 255 255)
+  , Font.bold
+  , padding 2
+  , spacing 5
+  , height (px 24)
+  ]
+  [ image [width (px 20)] {src="images/Alert.png", description="alert icon"}
+  , el [Font.size 14, Font.family [Font.typeface "MS Sans Serif", Font.sansSerif], paddingXY 4 2] (text titleText)
+  , el [width fill] none
+  , el [pointer, htmlAttribute <| class "hover-brightness depress", width (px 15), htmlAttribute (Html.Events.onClick onExit)]
+      (image [width (px 15)] {src="images/Exit.png", description="exit icon"})
+  ]
+
+winXPButton : String -> Element msg
+winXPButton label = el
+  [ Background.color (rgb255 192 192 192)
+  , Border.width 2
+  , Border.color (rgb255 128 128 128)
+  , padding 2
+  , Font.family [Font.typeface "MS Sans Serif", Font.sansSerif]
+  -- , Font.size 11
+  -- , width (px 75)
+  -- , height (px 23)
+  , centerX
+  , centerY
+  , htmlAttribute <| class "depress"
+  ]
+  (el [pointer, padding 3, width fill, centerX, centerY, htmlAttribute <| class "hover-dotted"] (text label))
+
+
+winXPWindow : String -> String -> WindowState -> Element Msg -> Element Msg
+winXPWindow windowId title windowState content = 
+  if not windowState.visible then none
+  else el
+    [ width (px 300)
+    , Border.widthEach {top=2, bottom=3, left=2, right=3}
+    , Border.color (rgb255 0 84 227)
+    , Border.shadow {
+      offset=(5,5), size=2, color=(rgba255 0 0 0 0.5), blur=5
+    }
+    , moveRight (toFloat windowState.offsetX)
+    , moveDown (toFloat windowState.offsetY)
+    ]
+    (column
+      [ width fill
+      , Background.color (rgb255 192 192 192)
+      ]
+      [ winXPTitleBar title (ClickExit windowId)
+      , column
+        [ width fill
+        , Background.color (rgb255 192 192 192)
+        , padding 20
+        , spacing 15
+        ]
+        [ el
+          [ Font.family [Font.typeface "MS Sans Serif", Font.sansSerif]
+          -- , Font.size 11
+          , centerX
+          ]
+          content
+        , winXPButton "Check it out!"
+        ]
+      ]
+    )
 
 
 body model = column
@@ -178,7 +283,7 @@ body model = column
   , spacing 50
   ]
   [ el [centerX] interests
-  , el [centerX] doodads
+  , el [centerX] (doodads model)
   , wrappedRow [centerX, spacing 30]
     [ goodreadsLink
     -- , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
@@ -190,7 +295,7 @@ body model = column
     (email model)
   ]
 
-view : Model -> Element a
+view : Model -> Element Msg
 view model = column
   [ width fill
   , height fill
@@ -234,23 +339,23 @@ main = Browser.element
   }
 
 
-test = \_ -> (testModel, Cmd.none)
+-- test = \_ -> (testModel, Cmd.none)
 
-testModel : Model
-testModel =
-  { currentReads=Loaded (shelfOf 1)
-  , recentlyRead=Loaded (shelfOf 5)
-  , mobile=False
-  }
+-- testModel : Model
+-- testModel =
+--   { currentReads=Loaded (shelfOf 1)
+--   , recentlyRead=Loaded (shelfOf 5)
+--   , mobile=False
+--   }
 
-testBook =
-  { author = "James, C.L.R."
-  , cover = "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1684793790l/125078769.jpg"
-  , rating = 5
-  , title = "Toussaint Louverture: The Story of the Only Successful Slave Revolt in History"
-  , url = "https://www.goodreads.com/book/show/125078769-toussaint-louverture"
-  }
+-- testBook =
+--   { author = "James, C.L.R."
+--   , cover = "https://i.gr-assets.com/images/S/compressed.photo.goodreads.com/books/1684793790l/125078769.jpg"
+--   , rating = 5
+--   , title = "Toussaint Louverture: The Story of the Only Successful Slave Revolt in History"
+--   , url = "https://www.goodreads.com/book/show/125078769-toussaint-louverture"
+--   }
 
-emptyShelf = Shelf "" []
+-- emptyShelf = Shelf "" []
 
-shelfOf num = Shelf "" (repeat num testBook)
+-- shelfOf num = Shelf "" (repeat num testBook)
