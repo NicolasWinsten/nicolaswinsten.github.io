@@ -126,23 +126,23 @@ fontSize {mobile} =
   if mobile then Font.size 36
   else Font.size 24
 
-doodads model = textColumn [spacing 30]
-  [ wrappedRow [Font.center]
-    [ paragraph [] [text "doodads"]
-    , image [width fill] {src="images/walkingrobot.gif", description="walking robot"}
-    , winXPWindow "zimi" "Zimi 字谜！" (Dict.get "zimi" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [] [hyperlink "https://zimi.nicolaswinston.com" "zimi", text ": a daily Chinese character puzzle"]
+popup : String -> WindowState -> String -> String -> Element Msg -> Element Msg
+popup key windowState title link content =
+  if not windowState.visible then none
+  else el [moveRight (toFloat windowState.offsetX), moveDown (toFloat windowState.offsetY)]
+  (winXPWindow key title link content)
+
+
+
+doodads model = wrappedRow [Font.center, spacing 10]
+    [ column [] [text "doodads", image [width fill] {src="images/walkingrobot.gif", description="walking robot"}]
+    , popup "zimi" (Dict.get "zimi" model.windows |> Maybe.withDefault initialWindowState) "Zimi 字谜！" "https://zimi.nicolaswinsten.com" <| paragraph [Font.center] [text "zimi: a daily Chinese character puzzle"]
+    , popup "p2p" (Dict.get "p2p" model.windows |> Maybe.withDefault initialWindowState) "P2P Wikipedia Race!"  "https://nicolaswinsten.com/racer" <| paragraph [Font.center]
+    [ image [] {src="images/wikilogo.gif", description=""}, text "a peer-to-peer Wikipedia game to play with your friends"]
+    , popup "graph" (Dict.get "graph" model.windows |> Maybe.withDefault initialWindowState) "3D wikipedia graph" "https://nicolaswinsten.com/wikiweb" <| paragraph [Font.center]
+    [ text "a 3D traversible graph visualization for wikipedia categories (meant for desktop and mouse)"]
+    , popup "turing" (Dict.get "turing" model.windows |> Maybe.withDefault initialWindowState) "Turing Machine Simulator" "https://nicolaswinsten.com/turing" <| paragraph [] [text "a turing machine simulator built in Scala.js"]
     ]
-  , winXPWindow "p2p" "P2P Wikipedia Race!" (Dict.get "p2p" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [Font.center]
-    [ text "a peer-to-peer ", hyperlink "https://nicolaswinston.com/racer" "Wikipedia game"
-    , image [] {src="images/wikilogo.gif", description=""}
-    , text " to play with your friends"
-    ]
-  , winXPWindow "graph" "3D interactive graph visualization" (Dict.get "graph" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [Font.center]
-    [ text "a ", hyperlink "https://nicolaswinston.com/wikiweb" "3D interactive graph visualization"
-    , text " for wikipedia categories (meant for desktop and mouse)"
-    ]
-  , winXPWindow "turing" "Turing Machine Simulator" (Dict.get "turing" model.windows |> Maybe.withDefault initialWindowState) <| paragraph [] [text "a ", hyperlink "https://nicolaswinston.com/turing" "turing machine simulator"]
-  ]
 
 email {mobile} =
   let fill_ = if mobile then [width fill] else []
@@ -250,18 +250,15 @@ winXPButton label = el
   (el [pointer, padding 3, width fill, centerX, centerY, htmlAttribute <| class "hover-dotted"] (text label))
 
 
-winXPWindow : String -> String -> WindowState -> Element Msg -> Element Msg
-winXPWindow windowId title windowState content = 
-  if not windowState.visible then none
-  else el
+winXPWindow : String -> String -> String -> Element Msg -> Element Msg
+winXPWindow windowId title link content = 
+  el
     [ width (px 300)
     , Border.widthEach {top=2, bottom=3, left=2, right=3}
     , Border.color (rgb255 0 84 227)
     , Border.shadow {
       offset=(5,5), size=2, color=(rgba255 0 0 0 0.5), blur=5
     }
-    , moveRight (toFloat windowState.offsetX)
-    , moveDown (toFloat windowState.offsetY)
     ]
     (column
       [ width fill
@@ -280,7 +277,7 @@ winXPWindow windowId title windowState content =
           , centerX
           ]
           content
-        , winXPButton "Check it out!"
+        , winXPButton link
         ]
       ]
     )
