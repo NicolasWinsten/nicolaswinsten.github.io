@@ -323,10 +323,10 @@ body model = column
   , el [centerX] (doodads model)
   , wrappedRow [centerX, spacing 30]
     [ goodreadsLink
-    , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
+    -- , el [width fill] (viewShelf model "what i'm currently reading" model.currentReads)
     ]
   -- hide recently read list because it reveals too much about my reading habits
-  , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
+  -- , el [centerX] (viewShelf model "books i read recently" model.recentlyRead)
   , el
     (if model.mobile then [width fill] else [alignBottom, alignLeft, scale 0.8])
     (email model)
@@ -375,9 +375,10 @@ subscriptions model =
 
 initialCmd : Cmd Msg
 initialCmd = Cmd.batch
-  [ fetchGoodReadsShelf {shelf="read", numBooks=5}
-  , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
-  , Task.perform (\vp -> WindowResized (round vp.viewport.width) (round vp.viewport.height)) Browser.Dom.getViewport
+  [
+    -- fetchGoodReadsShelf {shelf="read", numBooks=5}
+  -- , fetchGoodReadsShelf {shelf="currently-reading", numBooks=5}
+  Task.perform (\vp -> WindowResized (round vp.viewport.width) (round vp.viewport.height)) Browser.Dom.getViewport
   , Random.generate (SetOffset "zimi") (Random.pair (Random.int -50 50) (Random.int -50 50))
   , Random.generate (SetOffset "p2p") (Random.pair (Random.int -50 50) (Random.int -50 50))
   , Random.generate (SetOffset "graph") (Random.pair (Random.int -50 50) (Random.int -50 50))
