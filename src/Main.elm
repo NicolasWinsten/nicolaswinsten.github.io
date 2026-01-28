@@ -47,6 +47,9 @@ type alias Model =
   , windows : Dict String WindowState
   , windowWidth : Int
   , windowHeight : Int
+  , dragging : Maybe String
+  , dragStartX : Float
+  , dragStartY : Float
   }
 
 initialWindowState = { visible = True, offsetX = 0, offsetY = 0 }
@@ -63,6 +66,9 @@ initialModel =
       ]
   , windowWidth = 0
   , windowHeight = 0
+  , dragging = Nothing
+  , dragStartX = 0
+  , dragStartY = 0
   }
 
 type Msg
@@ -70,6 +76,9 @@ type Msg
   | ClickExit String
   | SetOffset String (Int, Int)
   | WindowResized Int Int
+  | StartDrag String Float Float
+  | Drag Float Float
+  | EndDrag
 
 {- goodreads withdrew API support...
 so I gotta scrape the site manually
@@ -108,6 +117,23 @@ update msg model = case msg of
 
     WindowResized width height ->
       ({model | windowWidth = width, windowHeight = height}, Cmd.none)
+
+    StartDrag windowId x y ->
+      ({model | dragging = Just windowId, dragStartX = x, dragStartY = y}, Cmd.none)
+
+    Drag x y ->
+      case model.dragging of
+        Nothing -> (model, Cmd.none)
+        Just windowId ->
+          let dx = round (x - model.dragStartX)
+              dy = round (y - model.dragStartY)
+              updatedWindows = Dict.update windowId 
+                (Maybe.map (\w -> {w | offsetX = w.offsetX + dx, offsetY = w.offsetY + dy})) 
+                model.windows
+          in ({model | windows = updatedWindows, dragStartX = x, dragStartY = y}, Cmd.none)
+
+    EndDrag ->
+      ({model | dragging = Nothing}, Cmd.none)
 
 hyperlink url label = link [Font.color (rgb255 13 110 253), Font.underline] {url=url, label=text label}
 
@@ -216,8 +242,12 @@ goodreadsLink = newTabLink [Font.underline]
       {src="images/book.gif", description="good reads link"}
   }
 
-winXPTitleBar : String -> msg -> Element msg
-winXPTitleBar titleText onExit = row
+winXPTitleBar : String -> String -> Msg -> Element Msg
+winXPTitleBar windowId titleText onExit = 
+  let mouseDownDecoder = Decode.map2 (StartDrag windowId)
+        (Decode.field "clientX" Decode.float)
+        (Decode.field "clientY" Decode.float)
+  in row
   [ width fill
   , Background.color (rgb255 0 84 227)
   , Font.color (rgb255 255 255 255)
@@ -225,6 +255,8 @@ winXPTitleBar titleText onExit = row
   , padding 2
   , spacing 5
   , height (px 24)
+  , pointer
+  , htmlAttribute (Html.Events.preventDefaultOn "mousedown" (Decode.map (\msg -> (msg, True)) mouseDownDecoder))
   ]
   [ image [width (px 20)] {src="images/Alert.png", description="alert icon"}
   , el [Font.size 14, Font.family [Font.typeface "MS Sans Serif", Font.sansSerif], paddingXY 4 2] (text titleText)
@@ -264,7 +296,7 @@ winXPWindow windowId title link content =
       [ width fill
       , Background.color (rgb255 192 192 192)
       ]
-      [ winXPTitleBar title (ClickExit windowId)
+      [ winXPTitleBar windowId title (ClickExit windowId)
       , column
         [ width fill
         , Background.color (rgb255 192 192 192)
@@ -324,12 +356,21 @@ decodeShelf = Decode.map2 Shelf
   (Decode.field "books" (Decode.list bookDecoder))
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
   let gotShelf = Sub.map ReceivedShelf (receiveShelf (Decode.decodeValue decodeShelf))
+      mouseMoveDecoder = Decode.map2 Drag
+        (Decode.field "clientX" Decode.float)
+        (Decode.field "clientY" Decode.float)
+      dragSubs = case model.dragging of
+        Nothing -> []
+        Just _ ->
+          [ Browser.Events.onMouseMove mouseMoveDecoder
+          , Browser.Events.onMouseUp (Decode.succeed EndDrag)
+          ]
   in Sub.batch 
-    [ gotShelf
+    ([ gotShelf
     , Browser.Events.onResize WindowResized
-    ]
+    ] ++ dragSubs)
 
 initialCmd : Cmd Msg
 initialCmd = Cmd.batch
