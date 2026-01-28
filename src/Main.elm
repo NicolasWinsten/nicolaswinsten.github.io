@@ -271,13 +271,8 @@ winXPWindow windowId title link content =
         , padding 20
         , spacing 15
         ]
-        [ el
-          [ Font.family [Font.typeface "MS Sans Serif", Font.sansSerif]
-          -- , Font.size 11
-          , centerX
-          ]
-          content
-        , winXPButton link
+        [ el [ Font.family [Font.typeface "MS Sans Serif", Font.sansSerif], centerX] content
+        , newTabLink [centerX] {url = link, label = winXPButton "Check it out!"}
         ]
       ]
     )
