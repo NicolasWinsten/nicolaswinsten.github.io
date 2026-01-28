@@ -162,7 +162,7 @@ popup key windowState title link content =
 
 doodads model = wrappedRow [Font.center, spacing 10]
     [ column [] [text "doodads", image [width fill] {src="images/walkingrobot.gif", description="walking robot"}]
-    , popup "zimi" (Dict.get "zimi" model.windows |> Maybe.withDefault initialWindowState) "Zimi 字谜！" "https://zimi.nicolaswinsten.com" <| paragraph [Font.center] [text "zimi: a daily Chinese character puzzle"]
+    , popup "zimi" (Dict.get "zimi" model.windows |> Maybe.withDefault initialWindowState) "Zimi 字谜！" "https://zimi.nicolaswinsten.com" <| paragraph [Font.center] [text "字谜: a daily Chinese character puzzle"]
     , popup "p2p" (Dict.get "p2p" model.windows |> Maybe.withDefault initialWindowState) "P2P Wikipedia Race!"  "https://nicolaswinsten.com/racer" <| paragraph [Font.center]
     [ image [] {src="images/wikilogo.gif", description=""}, text "a peer-to-peer Wikipedia game to play with your friends"]
     , popup "graph" (Dict.get "graph" model.windows |> Maybe.withDefault initialWindowState) "3D wikipedia graph" "https://nicolaswinsten.com/wikiweb" <| paragraph [Font.center]
